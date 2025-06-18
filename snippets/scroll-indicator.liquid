@@ -1,0 +1,63 @@
+<div id="shopify-scroll-indicator" class="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-20 flex flex-col items-center pointer-events-none">
+  <div class="scroll-mouse" style="position: relative; width: 2.25rem; height: 4rem; border: 2px solid #d4af37; border-radius: 9999px; display: flex; align-items: flex-start; justify-content: center; background: rgba(10,37,42,0.53); backdrop-filter: blur(4px); overflow: hidden;">
+    <span class="scroll-dot"></span>
+  </div>
+  <span class="mt-3 text-sm" style="color:#d4af37; letter-spacing:0.12em; font-weight:500; user-select:none; display:flex; align-items:center; gap:0.25em;">
+    Scroll
+    <svg class="inline" style="width:1.2em;height:1.2em;vertical-align:-0.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="6,9 12,15 18,9" />
+    </svg>
+  </span>
+</div>
+
+<style>
+.scroll-dot {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0.65rem;
+  height: 0.65rem;
+  background: #d4af37;
+  border-radius: 50%;
+  opacity: 0;
+  animation: scroll-dot-smooth-move 1.8s cubic-bezier(0.65,0,0.35,1) infinite paused;
+  /* Smoother, longer, more natural motion */
+  box-shadow: 0 0 18px 4px rgba(212,175,55,0.25);
+}
+@keyframes scroll-dot-smooth-move {
+  0%   { top: 19%; opacity: 0; }
+  7%   { opacity: 0.3; }
+  15%  { top: 25%; opacity: 0.7; }
+  27%  { opacity: 1; }
+  45%  { top: 56%; opacity: 1; }
+  70%  { top: 80%; opacity: 0.7; }
+  80%  { opacity: 0.3; }
+  100% { top: 88%; opacity: 0; }
+}
+</style>
+<script>
+(function(){
+  var dot = document.querySelector('#shopify-scroll-indicator .scroll-dot');
+  var running = false, timer;
+  function startAnim() {
+    if (!dot) return;
+    if (!running) {
+      running = true;
+      dot.style.animationPlayState = "running";
+      clearTimeout(timer);
+      timer = setTimeout(stopAnim, 1300);
+    } else {
+      clearTimeout(timer);
+      timer = setTimeout(stopAnim, 1300);
+    }
+  }
+  function stopAnim() {
+    running = false;
+    if(dot) dot.style.animationPlayState = "paused";
+  }
+  window.addEventListener('wheel', startAnim, {passive:true});
+  window.addEventListener('touchmove', startAnim, {passive:true});
+  // Uncomment next line to always animate on load:
+  // if(dot) dot.style.animationPlayState = "running";
+})();
+</script>

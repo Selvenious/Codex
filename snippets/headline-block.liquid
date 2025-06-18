@@ -1,0 +1,118 @@
+{%- comment -%}
+Reusable headline-block snippet for Shopify, matching hero-banner.liquid headline structure:
+- Supports: slogan, primary, secondary, subheadline (all optional)
+- Accepts all typography, alignment, gradient, and color settings as parameters (see README)
+- Usage: {% render 'headline-block', id: ..., slogan: ..., ... %}
+{%- endcomment -%}
+
+{%- assign id = id | default: 'block' -%}
+{%- assign align_class = '' -%}
+{% case alignment %}
+  {% when 'left' %}{% assign align_class = 'text-left items-start' %}
+  {% when 'right' %}{% assign align_class = 'text-right items-end' %}
+  {% else %}{% assign align_class = 'text-center items-center' %}
+{% endcase %}
+
+{%- assign animation_class = '' -%}
+{% case animation_type %}
+  {% when 'fade-in' %}{% assign animation_class = 'animate-fade-in' %}
+  {% when 'slide-up' %}{% assign animation_class = 'animate-slide-up' %}
+  {% when 'zoom-in' %}{% assign animation_class = 'animate-zoom-in' %}
+  {% when 'bounce' %}{% assign animation_class = 'animate-bounce' %}
+  {% else %}{% assign animation_class = '' %}
+{% endcase %}
+
+<style>
+.hero-slogan--{{ id }} {
+  font-size: {{ slogan_font_size | default: 15 }}px;
+  color: {{ slogan_color | default: '#d4af37' }};
+  background: {{ slogan_bg | default: 'linear-gradient(to right, rgba(17,94,104,0.2), rgba(212,175,55,0.2))' }};
+  padding: 0.3em 1.2em;
+  border-radius: 9999px;
+  font-weight: 600;
+  display: inline-block;
+  border: 2px solid #d4af37;
+}
+.hero-headline-primary--{{ id }} {
+  font-size: {{ primary_font_size | default: 35 }}px;
+  background: {{ primary_gradient | default: 'linear-gradient(100deg, #fff 12%, #f8fafc 60%, #e5e8ec 100%)' }};
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  font-weight: {{ weight | default: 'bold' }};
+  letter-spacing: {{ spacing | default: 0.0 }}em;
+  line-height: {{ line_height | default: 1.1 }};
+  margin-bottom: 0.15em;
+  transition: background 0.3s;
+  display: block;
+}
+.hero-headline-secondary--{{ id }} {
+  font-size: {{ secondary_font_size | default: 35 }}px;
+  background: {{ secondary_gradient | default: 'linear-gradient(90deg, #d4af37 8%, #e0c23f 36%, #b7bc42 53%, #8c9c3f 61%, #5b7f5f 75%, #347e72 88%, #2c5f63 100%)' }};
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  font-weight: {{ weight | default: 'bold' }};
+  letter-spacing: {{ spacing | default: 0.0 }}em;
+  line-height: {{ line_height | default: 1.1 }};
+  margin-bottom: 0.15em;
+  transition: background 0.3s;
+  display: block;
+}
+.hero-subheadline--{{ id }} {
+  font-size: {{ subheadline_font_size | default: 15 }}px;
+  font-weight: {{ subheadline_weight | default: 'normal' }};
+  letter-spacing: {{ subheadline_spacing | default: 0.0 }}em;
+  line-height: {{ subheadline_line_height | default: 1.3 }};
+  color: #f8fafc;
+  opacity: 0.9;
+  margin-bottom: 2.5rem;
+  max-width: 44rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+/* Animation classes (minimal) */
+.animate-fade-in { opacity: 0; animation: fadeIn-{{ id }} {{ animation_duration | default: 800 }}ms {{ animation_delay | default: 0 }}ms forwards; }
+@keyframes fadeIn-{{ id }} { to { opacity: 1; } }
+.animate-slide-up { opacity: 0; transform: translateY(30px); animation: slideUp-{{ id }} {{ animation_duration | default: 800 }}ms {{ animation_delay | default: 0 }}ms forwards; }
+@keyframes slideUp-{{ id }} { to { opacity: 1; transform: translateY(0); } }
+.animate-zoom-in { opacity: 0; transform: scale(0.8); animation: zoomIn-{{ id }} {{ animation_duration | default: 800 }}ms {{ animation_delay | default: 0 }}ms forwards; }
+@keyframes zoomIn-{{ id }} { to { opacity: 1; transform: scale(1); } }
+.animate-bounce { opacity: 0; animation: bounceIn-{{ id }} {{ animation_duration | default: 800 }}ms {{ animation_delay | default: 0 }}ms forwards; }
+@keyframes bounceIn-{{ id }} {
+  0% { opacity: 0; transform: scale(0.5); }
+  60% { opacity: 1; transform: scale(1.1);}
+  80% { transform: scale(0.95);}
+  100% { opacity: 1; transform: scale(1);}
+}
+
+.headline-block-bg {
+  background: linear-gradient(135deg, rgba(8,32,36,0.89) 0%, rgba(16,52,59,0.81) 100%);
+  border-radius: 1.25rem;
+}
+</style>
+
+<div class="relative z-0 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 flex flex-col {{ align_class }} {{ animation_class }}">
+  {% if slogan %}
+    <div class="mb-6 w-full">
+      <span class="hero-slogan--{{ id }}">{{ slogan }}</span>
+    </div>
+  {% endif %}
+  {% if primary %}
+    <h1 class="mb-0 pb-0">
+      <span class="hero-headline-primary--{{ id }}">{{ primary }}</span>
+    </h1>
+  {% endif %}
+  {% if secondary %}
+    <h1 class="mt-0 pt-0">
+      <span class="hero-headline-secondary--{{ id }}">{{ secondary }}</span>
+    </h1>
+  {% endif %}
+  {% if subheadline %}
+    <div class="hero-subheadline--{{ id }}">
+      {{ subheadline }}
+    </div>
+  {% endif %}
+</div>

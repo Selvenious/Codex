@@ -1,0 +1,86 @@
+<div x-data="carousel()" class="relative overflow-x-hidden py-8">
+  <!-- Slider Wrapper -->
+  <div class="flex transition-transform duration-500"
+       :style="`transform: translateX(-${active * 100}%);`">
+    <template x-for="(feature, i) in features" :key="i">
+      <div class="min-w-[300px] max-w-[350px] mx-4 bg-white rounded-2xl shadow-lg flex-shrink-0 relative">
+        <div class="overflow-hidden rounded-t-2xl">
+          <img :src="feature.img" :alt="feature.title" class="object-cover w-full h-72" />
+        </div>
+        <div class="p-4 flex flex-col justify-between h-32">
+          <h3 class="font-bold text-lg mb-2" x-text="feature.title"></h3>
+          <div class="flex justify-end">
+            <button class="plus-btn" aria-label="See More">
+              <svg viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="1.5">
+                <path d="M12 18.2617L12 6"/>
+                <path d="M18.1309 12.1309L5.86914 12.1309"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </template>
+  </div>
+  <!-- Controls -->
+  <div class="absolute left-0 top-1/2 -translate-y-1/2 flex items-center space-x-2 px-4 w-full justify-between pointer-events-none">
+    <button @click="prev()" class="pointer-events-auto bg-white/80 hover:bg-white text-black rounded-full p-2 shadow-lg" :disabled="active === 0" aria-label="Previous">
+      <svg width="24" height="24" fill="none" stroke="black" stroke-width="2"><path d="M15 19l-7-7 7-7"/></svg>
+    </button>
+    <button @click="next()" class="pointer-events-auto bg-white/80 hover:bg-white text-black rounded-full p-2 shadow-lg" :disabled="active === features.length - 1" aria-label="Next">
+      <svg width="24" height="24" fill="none" stroke="black" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>
+    </button>
+  </div>
+  <!-- Dots -->
+  <div class="flex justify-center mt-4 space-x-2">
+    <template x-for="i in features.length" :key="i">
+      <button :class="active === i-1 ? 'bg-blue-600' : 'bg-gray-300'" class="w-3 h-3 rounded-full" @click="goTo(i-1)" :aria-label="'Go to slide ' + i" :aria-current="active === i-1"></button>
+    </template>
+  </div>
+</div>
+
+<script>
+function carousel() {
+  return {
+    active: 0,
+    features: [
+      {
+        img: "https://images.ctfassets.net/rbzqg6pelgqa/2MWznHIwCBkq0psNWBlMBd/28b91614374282d5d886c30f2f427b17/Quantify_how_your_body_is_feeling__3_.webp?fm=webp&q=75&w=828",
+        title: "Quantify how your body is feeling"
+      },
+      {
+        img: "https://images.ctfassets.net/rbzqg6pelgqa/xVYkNrlbEp2FBBlB8nZtN/83e094f6e216f9c621dda0a2cdad95af/Extend_your_prime__4_.webp?fm=webp&q=75&w=828",
+        title: "Extend your prime for years to come"
+      },
+      {
+        img: "https://images.ctfassets.net/rbzqg6pelgqa/4DF8ek6h14dnRgI3fjAAOc/6c03b5f127c316c47288a0558f41854e/Optimize_your_sleep__1_.webp?fm=webp&q=75&w=828",
+        title: "Optimize your sleep"
+      },
+      {
+        img: "https://images.ctfassets.net/rbzqg6pelgqa/50iEhV1lmhfX4BOUjZnTK/6b334fc6a4ebc3a29a5595854d4fef18/Measure_the_impact_of_every_step_and_rep.webp?fm=webp&q=75&w=828",
+        title: "Measure the impact of every step and rep"
+      },
+      {
+        img: "https://images.ctfassets.net/rbzqg6pelgqa/1iwCpHpMpjVHfBkQcNGv4P/fbd48749a53d0979359b9b7a86ff9de6/Stay_connected_to_your_heart_health__1_.webp?fm=webp&q=75&w=828",
+        title: "Stay connected to your heart health"
+      },
+      {
+        img: "https://images.ctfassets.net/rbzqg6pelgqa/4mUD3U1EGiLmCDbRm6OVV1/96fefbd9fb52af9bf550b62399e0dc51/Get_daily_Blood_Pressure_Insights.webp?fm=webp&q=75&w=828",
+        title: "Get daily Blood Pressure Insights"
+      },
+      {
+        img: "https://images.ctfassets.net/rbzqg6pelgqa/5mIC7gAOXgutLcOLFb1gfY/6d379c0dbea191734d6158c41a5833b7/Understand_your_unique_cycle__1_.webp?fm=webp&q=75&w=828",
+        title: "Understand your unique cycle"
+      }
+    ],
+    next() {
+      if (this.active < this.features.length - 1) this.active++
+    },
+    prev() {
+      if (this.active > 0) this.active--
+    },
+    goTo(i) {
+      this.active = i
+    }
+  }
+}
+</script>
