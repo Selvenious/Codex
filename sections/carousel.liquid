@@ -385,8 +385,14 @@ Visual & interaction refinements for WHOOP-style carousel modal:
               style="box-shadow:0 0 0 2px #fff;"
             >&#10005;</button>
             <!-- Modal Images (Left) -->
-            <div class="w-full md:w-1/2 flex flex-col items-end justify-center" style="background: linear-gradient(135deg, #111827 0%, #1f2937 100%);">
+            <div class="w-full md:w-1/2 flex flex-col items-end justify-center relative" style="background: linear-gradient(135deg, #111827 0%, #1f2937 100%);">
+              <!-- Loading Shimmer -->
+              <div 
+                x-show="!imageLoaded"
+                class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 animate-pulse">
+              </div>
               <img
+                @load="imageLoaded = true"
                 :src="features[modalIdx].modalImg || features[modalIdx].img"
                 :alt="features[modalIdx].title || 'Device preview'"
                 class="max-w-[320px] w-full h-auto mx-auto rounded-lg shadow-xl mb-4"
@@ -442,6 +448,7 @@ function carouselWithFeatureModal() {
     totalPages: 1,
     cardWidth: 0,
     cardGap: 0,
+    imageLoaded: false,
     features: [
       {% for block in section.blocks %}
       {
@@ -545,6 +552,7 @@ function carouselWithFeatureModal() {
     openModal(i) {
       if (i >= 0 && i < this.features.length) {
         this.modalIdx = i;
+        this.imageLoaded = false;
         this.modalOpen = true;
         document.body.classList.add('overflow-hidden');
       }
