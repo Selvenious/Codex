@@ -446,10 +446,12 @@ function carouselWithFeatureModal() {
     active: 0,
     modalOpen: false,
     modalIdx: null,
-    cardsPerPage: 3,
+    cardsPerPage: 1,
     totalPages: 1,
     cardWidth: 0,
     cardGap: 0,
+    track: null,
+    container: null,
     imageLoaded: false,
     features: [
       {% for block in section.blocks %}
@@ -485,13 +487,14 @@ function carouselWithFeatureModal() {
     ],
     init() {
       this.$nextTick(() => {
+        this.track = this.$refs.track;
+        this.container = this.track ? this.track.parentElement : null;
         this.measureCard();
         let resizeTimeout;
         window.addEventListener('resize', () => {
           clearTimeout(resizeTimeout);
           resizeTimeout = setTimeout(() => {
             this.measureCard();
-            this.adjustActiveOnResize();
           }, 150);
         });
         // --- Mobile swipe-to-close ---
@@ -519,32 +522,23 @@ function carouselWithFeatureModal() {
       });
     },
     measureCard() {
-      this.$nextTick(() => {
-        const card = this.$refs.track?.querySelector('.carousel-card-hero');
-        if (card) {
-          this.cardWidth = card.offsetWidth;
-          const style = getComputedStyle(card);
-          this.cardGap = parseFloat(style.marginLeft) + parseFloat(style.marginRight);
-        } else {
-          this.cardWidth = 320;
-          this.cardGap = 16;
-        }
-        this.updateCardsPerPage();
-      });
+      const card = this.track?.querySelector('.carousel-card-hero');
+      if (card) {
+        this.cardWidth = card.offsetWidth;
+        const style = getComputedStyle(card);
+        this.cardGap = parseFloat(style.marginLeft) + parseFloat(style.marginRight);
+      } else {
+        this.cardWidth = 320;
+        this.cardGap = 16;
+      }
+      this.updateCardsPerPage();
     },
     updateCardsPerPage() {
-      let container = this.$refs.track?.parentElement || null;
-      let containerWidth = container ? container.offsetWidth : window.innerWidth;
-      if (this.cardWidth > 0) {
-        this.cardsPerPage = Math.max(1, Math.floor((containerWidth + this.cardGap) / (this.cardWidth + this.cardGap)));
-      } else {
-        this.cardsPerPage = 1;
-      }
+      const width = this.container ? this.container.offsetWidth : window.innerWidth;
+      this.cardsPerPage = this.cardWidth
+        ? Math.max(1, Math.floor((width + this.cardGap) / (this.cardWidth + this.cardGap)))
+        : 1;
       this.totalPages = Math.max(1, this.features.length - this.cardsPerPage + 1);
-      if (this.active > this.totalPages - 1) this.active = this.totalPages - 1;
-      if (this.active < 0) this.active = 0;
-    },
-    adjustActiveOnResize() {
       if (this.active > this.totalPages - 1) this.active = this.totalPages - 1;
       if (this.active < 0) this.active = 0;
     },
