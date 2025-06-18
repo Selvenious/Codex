@@ -388,9 +388,9 @@ Visual & interaction refinements for WHOOP-style carousel modal:
             <!-- Modal Images (Left) -->
             <div class="w-full md:w-1/2 flex items-center justify-center relative overflow-hidden" style="background: linear-gradient(135deg, #111827 0%, #1f2937 100%);">
               <!-- Loading Shimmer -->
-              <div
+              <div 
                 x-show="!imageLoaded"
-                class="absolute inset-0 pointer-events-none z-10 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse">
+                class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 animate-pulse">
               </div>
               <img
                 @load="imageLoaded = true"
