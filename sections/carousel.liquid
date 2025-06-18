@@ -236,6 +236,17 @@ Visual & interaction refinements for WHOOP-style carousel modal:
   to { opacity: 1; transform: translateY(0) scale(1);}
 }
 .animate-slideInUp { animation: slideInUpModal 0.45s cubic-bezier(.23,1.02,.52,.99); }
+
+/* Loading shimmer */
+.shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
 </style>
 
 
@@ -387,9 +398,9 @@ Visual & interaction refinements for WHOOP-style carousel modal:
             <!-- Modal Images (Left) -->
             <div class="w-full md:w-1/2 flex flex-col items-end justify-center relative" style="background: linear-gradient(135deg, #111827 0%, #1f2937 100%);">
               <!-- Loading Shimmer -->
-              <div 
+              <div
                 x-show="!imageLoaded"
-                class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 animate-pulse">
+                class="absolute inset-0 pointer-events-none z-10 shimmer">
               </div>
               <img
                 @load="imageLoaded = true"
