@@ -386,17 +386,18 @@ Visual & interaction refinements for WHOOP-style carousel modal:
               style="box-shadow:0 0 0 2px #fff;"
             >&#10005;</button>
             <!-- Modal Images (Left) -->
-            <div class="w-full md:w-1/2 flex flex-col items-end justify-center relative" style="background: linear-gradient(135deg, #111827 0%, #1f2937 100%);">
+            <div class="w-full md:w-1/2 flex items-center justify-center relative overflow-hidden" style="background: linear-gradient(135deg, #111827 0%, #1f2937 100%);">
               <!-- Loading Shimmer -->
               <div
                 x-show="!imageLoaded"
-                class="absolute inset-0 pointer-events-none z-10 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 animate-pulse">
+                class="absolute inset-0 pointer-events-none z-10 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse">
               </div>
               <img
                 @load="imageLoaded = true"
+                x-show="imageLoaded"
                 :src="features[modalIdx].modalImg || features[modalIdx].img"
                 :alt="features[modalIdx].title || 'Device preview'"
-                class="max-w-[320px] w-full h-auto mx-auto rounded-lg shadow-xl mb-4"
+                class="max-w-[320px] w-full h-auto mx-auto rounded-lg shadow-xl mb-4 z-20"
                 loading="lazy"
                 :width="(features[modalIdx].modalImg_width || features[modalIdx].img_width || 320)"
                 :height="(features[modalIdx].modalImg_height || features[modalIdx].img_height || 240)"
