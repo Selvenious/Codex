@@ -477,52 +477,41 @@ function carouselWithFeatureModal() {
     init() {
       this.$nextTick(() => {
         this.measureCard();
-        this.updateCardsPerPage();
+        let resizeTimeout;
         window.addEventListener('resize', () => {
-          this.measureCard();
-          this.updateCardsPerPage();
-          this.adjustActiveOnResize();
+          clearTimeout(resizeTimeout);
+          resizeTimeout = setTimeout(() => {
+            this.measureCard();
+            this.adjustActiveOnResize();
+          }, 150);
         });
         // --- Mobile swipe-to-close ---
-        const self = this;
         let startY = 0;
         let modalContainer = null;
+        const onTouchStart = e => {
+          if (e.touches && e.touches.length) startY = e.touches[0].clientY;
+        };
+        const onTouchEnd = e => {
+          if (e.changedTouches && e.changedTouches.length) {
+            if (e.changedTouches[0].clientY - startY > 80) this.closeModal();
+          }
+        };
         this.$watch('modalOpen', (open) => {
-          if(open) {
-            setTimeout(() => {
-              modalContainer = this.$refs.modalContainer;
-              if(modalContainer) {
-                modalContainer.addEventListener('touchstart', onTouchStart, { passive:true });
-                modalContainer.addEventListener('touchend', onTouchEnd, { passive:true });
-              }
-            }, 10);
+          modalContainer = this.$refs.modalContainer;
+          if (!modalContainer) return;
+          if (open) {
+            modalContainer.addEventListener('touchstart', onTouchStart, { passive: true });
+            modalContainer.addEventListener('touchend', onTouchEnd, { passive: true });
+          } else {
+            modalContainer.removeEventListener('touchstart', onTouchStart);
+            modalContainer.removeEventListener('touchend', onTouchEnd);
           }
         });
-        function onTouchStart(e) {
-          if(e.touches && e.touches.length) startY = e.touches[0].clientY;
-        }
-        function onTouchEnd(e) {
-          if(e.changedTouches && e.changedTouches.length) {
-            const endY = e.changedTouches[0].clientY;
-            if(endY - startY > 80) {
-              self.closeModal();
-            }
-          }
-        }
       });
     },
     measureCard() {
       this.$nextTick(() => {
-        const track = this.$refs.track;
-        let card = null;
-        if (track && track.children.length) {
-          for (let i = 0; i < track.children.length; i++) {
-            if (track.children[i].classList.contains('carousel-card-hero')) {
-              card = track.children[i];
-              break;
-            }
-          }
-        }
+        const card = this.$refs.track?.querySelector('.carousel-card-hero');
         if (card) {
           this.cardWidth = card.offsetWidth;
           const style = getComputedStyle(card);
