@@ -394,10 +394,10 @@ Visual & interaction refinements for WHOOP-style carousel modal:
               </div>
               <img
                 @load="imageLoaded = true"
-                x-show="imageLoaded"
                 :src="features[modalIdx].modalImg || features[modalIdx].img"
                 :alt="features[modalIdx].title || 'Device preview'"
                 class="max-w-[320px] w-full h-auto mx-auto rounded-lg shadow-xl mb-4 z-20"
+                :class="{ 'opacity-100': imageLoaded, 'opacity-0': !imageLoaded }"
                 loading="lazy"
                 :width="(features[modalIdx].modalImg_width || features[modalIdx].img_width || 320)"
                 :height="(features[modalIdx].modalImg_height || features[modalIdx].img_height || 240)"
