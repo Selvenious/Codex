@@ -453,6 +453,9 @@ function carouselWithFeatureModal() {
     track: null,
     container: null,
     imageLoaded: false,
+    dragging: false,
+    dragStartX: 0,
+    dragStartY: 0,
     features: [
       {% for block in section.blocks %}
       {
@@ -493,6 +496,45 @@ function carouselWithFeatureModal() {
           cancelAnimationFrame(resizeFrame);
           resizeFrame = requestAnimationFrame(() => this.measureCard());
         });
+
+        // --- Swipe navigation ---
+        const onDragStart = e => {
+          this.dragging = true;
+          this.dragStartX = e.touches ? e.touches[0].clientX : e.clientX;
+          this.dragStartY = e.touches ? e.touches[0].clientY : e.clientY;
+          this.track.style.transition = 'none';
+        };
+        const onDragMove = e => {
+          if (!this.dragging) return;
+          const x = e.touches ? e.touches[0].clientX : e.clientX;
+          const y = e.touches ? e.touches[0].clientY : e.clientY;
+          const dx = x - this.dragStartX;
+          const dy = Math.abs(y - this.dragStartY);
+          if (dy > Math.abs(dx)) {
+            this.dragging = false;
+            this.track.style.transition = '';
+            this.track.style.transform = '';
+            return;
+          }
+          e.preventDefault();
+          this.track.style.transform = `translateX(${-this.active * (this.cardWidth + this.cardGap) + dx}px)`;
+        };
+        const onDragEnd = e => {
+          if (!this.dragging) return;
+          const x = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+          const dx = x - this.dragStartX;
+          this.dragging = false;
+          this.track.style.transition = '';
+          this.track.style.transform = '';
+          if (dx > 50) this.prev();
+          else if (dx < -50) this.next();
+        };
+        this.track.addEventListener('mousedown', onDragStart);
+        this.track.addEventListener('touchstart', onDragStart, { passive: true });
+        window.addEventListener('mousemove', onDragMove);
+        window.addEventListener('touchmove', onDragMove, { passive: false });
+        window.addEventListener('mouseup', onDragEnd);
+        window.addEventListener('touchend', onDragEnd);
         // --- Mobile swipe-to-close ---
         let startY = 0;
         let modalContainer = null;
