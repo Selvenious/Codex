@@ -282,7 +282,7 @@ Visual & interaction refinements for WHOOP-style carousel modal:
             <div 
               class="flex transition-transform transition-border duration-500"
               x-ref="track"
-              :style="`transform: translateX(-${active * (cardWidth + cardGap)}px);`"
+              :style="`transform: translateX(-${active * widthGap}px);`"
             >
               <template x-for="(feature, i) in features" :key="i">
                 <div
@@ -445,8 +445,10 @@ function carouselWithFeatureModal() {
     totalPages: 1,
     cardWidth: 0,
     cardGap: 0,
+    widthGap: 0,
     track: null,
     container: null,
+    cardRef: null,
     imageLoaded: false,
     dragging: false,
     dragStartX: 0,
@@ -495,6 +497,7 @@ function carouselWithFeatureModal() {
       this.$nextTick(() => {
         this.track = this.$refs.track;
         this.container = this.track ? this.track.parentElement : null;
+        this.cardRef = Array.isArray(this.$refs.card) ? this.$refs.card[0] : this.$refs.card;
         this.measureCard();
         let resizeFrame;
         window.addEventListener('resize', () => {
@@ -529,7 +532,7 @@ function carouselWithFeatureModal() {
           e.preventDefault();
           cancelAnimationFrame(moveFrame);
           moveFrame = requestAnimationFrame(() => {
-            this.track.style.transform = `translateX(${-this.active * (this.cardWidth + this.cardGap) + dx}px)`;
+            this.track.style.transform = `translateX(${-this.active * this.widthGap + dx}px)`;
           });
         };
         const onDragEnd = e => {
@@ -576,7 +579,7 @@ function carouselWithFeatureModal() {
       });
     },
     measureCard() {
-      const card = this.track?.querySelector('.carousel-card-hero');
+      const card = this.cardRef || this.track?.querySelector('.carousel-card-hero');
       if (card) {
         this.cardWidth = card.offsetWidth;
         const style = getComputedStyle(card);
@@ -585,12 +588,13 @@ function carouselWithFeatureModal() {
         this.cardWidth = 320;
         this.cardGap = 16;
       }
+      this.widthGap = this.cardWidth + this.cardGap;
       this.updateCardsPerPage();
     },
     updateCardsPerPage() {
       const width = this.container ? this.container.offsetWidth : window.innerWidth;
       this.cardsPerPage = this.cardWidth
-        ? Math.max(1, Math.floor((width + this.cardGap) / (this.cardWidth + this.cardGap)))
+        ? Math.max(1, Math.floor((width + this.cardGap) / this.widthGap))
         : 1;
       this.totalPages = Math.max(1, this.features.length - this.cardsPerPage + 1);
       if (this.active > this.totalPages - 1) this.active = this.totalPages - 1;
