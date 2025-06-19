@@ -530,10 +530,14 @@ function carouselWithFeatureModal() {
     },
         this.container = this.track ? this.track.parentElement : null;
         this.measureCard();
-        let resizeFrame;
-        window.addEventListener('resize', () => {
-          cancelAnimationFrame(resizeFrame);
-          resizeFrame = requestAnimationFrame(() => this.measureCard());
+      if (!this.boundTouchStart) {
+        this.boundTouchStart = this.onTouchStart.bind(this);
+        this.boundTouchEnd = this.onTouchEnd.bind(this);
+      }
+        modal.addEventListener('touchstart', this.boundTouchStart, { passive: true });
+        modal.addEventListener('touchend', this.boundTouchEnd, { passive: true });
+        modal.removeEventListener('touchstart', this.boundTouchStart);
+        modal.removeEventListener('touchend', this.boundTouchEnd);
         });
 
         // --- Swipe navigation ---
