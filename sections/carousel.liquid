@@ -505,14 +505,17 @@ function carouselWithFeatureModal() {
           }
         };
         this.$watch('modalOpen', (open) => {
-          modalContainer = this.$refs.modalContainer;
-          if (!modalContainer) return;
           if (open) {
-            modalContainer.addEventListener('touchstart', onTouchStart, { passive: true });
-            modalContainer.addEventListener('touchend', onTouchEnd, { passive: true });
-          } else {
+            this.$nextTick(() => {
+              modalContainer = this.$refs.modalContainer;
+              if (!modalContainer) return;
+              modalContainer.addEventListener('touchstart', onTouchStart, { passive: true });
+              modalContainer.addEventListener('touchend', onTouchEnd, { passive: true });
+            });
+          } else if (modalContainer) {
             modalContainer.removeEventListener('touchstart', onTouchStart);
             modalContainer.removeEventListener('touchend', onTouchEnd);
+            modalContainer = null;
           }
         });
       });
