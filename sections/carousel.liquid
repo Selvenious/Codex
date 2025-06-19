@@ -9,6 +9,7 @@ Visual & interaction refinements for WHOOP-style carousel modal:
 
 <link href="https://fonts.googleapis.com/css?family=Inter:400,500,700&display=swap" rel="stylesheet">
 
+
 <style>
 [x-cloak] { display: none !important; }
 
@@ -238,6 +239,8 @@ Visual & interaction refinements for WHOOP-style carousel modal:
 
 </style>
 
+
+
 <div class="carousel-bg-hero">
   <div class="section-{{ section.id }}-padding">
     {% render 'headline-block',
@@ -449,88 +452,115 @@ function carouselWithFeatureModal() {
     cardGap: 0,
     track: null,
     container: null,
-    firstCard: null,
-    resizeFrame: null,
-    startY: 0,
+    imageLoaded: false,
     dragging: false,
     dragStartX: 0,
     dragStartY: 0,
-    imageLoaded: false,
+    features: [
+      {% for block in section.blocks %}
+      {
+        img: {{ block.settings.img | json }},
+        modalImg: {{ block.settings.modalImg | json }},
+        title: {{ block.settings.title | json }},
+        feature_eyebrow: {{ block.settings.feature_eyebrow | json }},
+        feature_badge: {{ block.settings.feature_badge | json }},
+        feature_title: {{ block.settings.feature_title | json }},
+        feature_description: {{ block.settings.feature_description | json }},
+        feature_quote: {{ block.settings.feature_quote | json }},
+        quote_eyebrow: {{ block.settings.quote_eyebrow | json }},
+        quote_author: {{ block.settings.quote_author | json }},
+      }{% unless forloop.last %},{% endunless %}
+      {% endfor %}
+      {% if section.blocks.size == 0 %}
+      {
+        img: "https://cdn.shopify.com/s/files/1/0661/7828/5755/files/Yoga.png?v=1750020580",
+        modalImg: "https://cdn.shopify.com/s/files/1/0661/7828/5755/files/Dashboard.png?v=1750026584",
+        title: "Quantify how your body is feeling",
+        feature_eyebrow: "Available on",
+        feature_badge: "ALL MEMBERSHIPS",
+        feature_title: "Quantify how your body is feeling",
+        feature_description: "Understand how your body adapts to training, sleep deprivation, illness, or your menstrual cycle—higher recovery means you're ready for more, while lower recovery signals it's time to rest.",
+        feature_quote: "One life lesson that WHOOP has helped instill is that rest and recovery days are needed. Waking up and seeing a low recovery score makes me stop and think of what I can do to help my body.",
+        quote_eyebrow: "Member Spotlight",
+        quote_author: "Samantha S."
+      }
+      {% endif %}
+    ],
     init() {
-      this.track = this.$refs.track;
-      this.container = this.track ? this.track.parentElement : null;
-      this.firstCard = this.track?.querySelector('.carousel-card-hero');
-      this.measureCard();
-      window.addEventListener('resize', this.onResize.bind(this));
-      this.$watch('modalOpen', this.toggleSwipe.bind(this));
+      this.$nextTick(() => {
+        this.track = this.$refs.track;
+        this.container = this.track ? this.track.parentElement : null;
+        this.measureCard();
+        let resizeFrame;
+        window.addEventListener('resize', () => {
+          cancelAnimationFrame(resizeFrame);
+          resizeFrame = requestAnimationFrame(() => this.measureCard());
+        });
 
-      // --- Swipe navigation ---
-      const onDragStart = e => {
-        this.dragging = true;
-        this.dragStartX = e.touches ? e.touches[0].clientX : e.clientX;
-        this.dragStartY = e.touches ? e.touches[0].clientY : e.clientY;
-        this.track.style.transition = 'none';
-      };
-      const onDragMove = e => {
-        if (!this.dragging) return;
-        const x = e.touches ? e.touches[0].clientX : e.clientX;
-        const y = e.touches ? e.touches[0].clientY : e.clientY;
-        const dx = x - this.dragStartX;
-        const dy = Math.abs(y - this.dragStartY);
-        if (dy > Math.abs(dx)) {
+        // --- Swipe navigation ---
+        const onDragStart = e => {
+          this.dragging = true;
+          this.dragStartX = e.touches ? e.touches[0].clientX : e.clientX;
+          this.dragStartY = e.touches ? e.touches[0].clientY : e.clientY;
+          this.track.style.transition = 'none';
+        };
+        const onDragMove = e => {
+          if (!this.dragging) return;
+          const x = e.touches ? e.touches[0].clientX : e.clientX;
+          const y = e.touches ? e.touches[0].clientY : e.clientY;
+          const dx = x - this.dragStartX;
+          const dy = Math.abs(y - this.dragStartY);
+          if (dy > Math.abs(dx)) {
+            this.dragging = false;
+            this.track.style.transition = '';
+            this.track.style.transform = '';
+            return;
+          }
+          e.preventDefault();
+          this.track.style.transform = `translateX(${-this.active * (this.cardWidth + this.cardGap) + dx}px)`;
+        };
+        const onDragEnd = e => {
+          if (!this.dragging) return;
+          const x = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+          const dx = x - this.dragStartX;
           this.dragging = false;
           this.track.style.transition = '';
           this.track.style.transform = '';
-          return;
-        }
-        e.preventDefault();
-        this.track.style.transform = `translateX(${-this.active * (this.cardWidth + this.cardGap) + dx}px)`;
-      };
-      const onDragEnd = e => {
-        if (!this.dragging) return;
-        const x = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
-        const dx = x - this.dragStartX;
-        this.dragging = false;
-        this.track.style.transition = '';
-        this.track.style.transform = '';
-        if (dx > 50) this.prev();
-        else if (dx < -50) this.next();
-      };
-      this.track.addEventListener('mousedown', onDragStart);
-      this.track.addEventListener('touchstart', onDragStart, { passive: true });
-      window.addEventListener('mousemove', onDragMove);
-      window.addEventListener('touchmove', onDragMove, { passive: false });
-      window.addEventListener('mouseup', onDragEnd);
-      window.addEventListener('touchend', onDragEnd);
-
-      // --- Mobile swipe-to-close ---
-      let modalContainer = null;
-      const onTouchStart = e => {
-        if (e.touches && e.touches.length) this.startY = e.touches[0].clientY;
-      };
-      const onTouchEnd = e => {
-        if (e.changedTouches && e.changedTouches.length && e.changedTouches[0].clientY - this.startY > 80) {
-          this.closeModal();
-        }
-      };
-      this.$watch('modalOpen', (open) => {
-        if (open) {
-          this.$nextTick(() => {
-            modalContainer = this.$refs.modalContainer;
-            if (!modalContainer) return;
-            modalContainer.addEventListener('touchstart', onTouchStart, { passive: true });
-            modalContainer.addEventListener('touchend', onTouchEnd, { passive: true });
-          });
-        } else if (modalContainer) {
-          modalContainer.removeEventListener('touchstart', onTouchStart);
-          modalContainer.removeEventListener('touchend', onTouchEnd);
-          modalContainer = null;
-        }
+          if (dx > 50) this.prev();
+          else if (dx < -50) this.next();
+        };
+        this.track.addEventListener('mousedown', onDragStart);
+        this.track.addEventListener('touchstart', onDragStart, { passive: true });
+        window.addEventListener('mousemove', onDragMove);
+        window.addEventListener('touchmove', onDragMove, { passive: false });
+        window.addEventListener('mouseup', onDragEnd);
+        window.addEventListener('touchend', onDragEnd);
+        // --- Mobile swipe-to-close ---
+        let startY = 0;
+        let modalContainer = null;
+        const onTouchStart = e => {
+          if (e.touches && e.touches.length) startY = e.touches[0].clientY;
+        };
+        const onTouchEnd = e => {
+          if (e.changedTouches && e.changedTouches.length) {
+            if (e.changedTouches[0].clientY - startY > 80) this.closeModal();
+          }
+        };
+        this.$watch('modalOpen', (open) => {
+          if (open) {
+            this.$nextTick(() => {
+              modalContainer = this.$refs.modalContainer;
+              if (!modalContainer) return;
+              modalContainer.addEventListener('touchstart', onTouchStart, { passive: true });
+              modalContainer.addEventListener('touchend', onTouchEnd, { passive: true });
+            });
+          } else if (modalContainer) {
+            modalContainer.removeEventListener('touchstart', onTouchStart);
+            modalContainer.removeEventListener('touchend', onTouchEnd);
+            modalContainer = null;
+          }
+        });
       });
-    },
-    onResize() {
-      cancelAnimationFrame(this.resizeFrame);
-      this.resizeFrame = requestAnimationFrame(() => this.measureCard());
     },
     measureCard() {
       const card = this.track?.querySelector('.carousel-card-hero');
