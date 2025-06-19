@@ -144,7 +144,7 @@ Visual & interaction refinements for WHOOP-style carousel modal:
   text-align: left;
 }
 .modal-modal-desc {
-  font-size: clamp(1rem, 3.2vw, 1.15rem);
+  font-size: clamp(1.3rem, 4vw, 1.4rem);
   font-weight: 400;
   font-family: 'proxima-nova', Arial, Helvetica, sans-serif;
   line-height: 1.4;
@@ -153,7 +153,7 @@ Visual & interaction refinements for WHOOP-style carousel modal:
   text-align: left;
 }
 .modal-spotlight-text {
-  font-size: clamp(0.95rem, 2.8vw, 1rem);
+  font-size: clamp(0.95rem, 3.2vw, 1.2rem);
   font-style: italic;
   font-family: 'proxima-nova', Arial, Helvetica, sans-serif;
   color: #666;
@@ -232,7 +232,7 @@ Visual & interaction refinements for WHOOP-style carousel modal:
 @media (max-width: 700px) {
   .modal-container { max-width: 100vw !important; }
   .modal-modal-title { font-size: clamp(1.05rem, 6vw, 1.5rem) !important; }
-  .modal-modal-desc { font-size: clamp(0.96rem, 4vw, 1rem) !important; }
+  .modal-modal-desc { font-size: clamp(1.2rem, 4vw, 1.4rem) !important; }
 }
 
 @keyframes slideInUpModal {
@@ -412,9 +412,9 @@ Visual & interaction refinements for WHOOP-style carousel modal:
               style="
                 --modal-title-size: {{ section.settings.modal_title_size | default: 36 }}px;
                 --modal-desc-size: {{ section.settings.modal_desc_size | default: 18 }}px;
-                --modal-spotlight-title-size: {{ section.settings.modal_spotlight_title_size | default: 17 }}px;
+                --modal-spotlight-title-size: {{ section.settings.modal_spotlight_title_size | default: 12 }}px;
                 --modal-spotlight-text-size: {{ section.settings.modal_spotlight_text_size | default: 16 }}px;
-                --modal-spotlight-author-size: {{ section.settings.modal_spotlight_author_size | default: 14 }}px;
+                --modal-spotlight-author-size: {{ section.settings.modal_spotlight_author_size | default: 12 }}px;
               "
             >
               <div class="space-y-3">
@@ -820,43 +820,43 @@ function carouselWithFeatureModal() {
           "type": "text",
           "id": "feature_eyebrow",
           "label": "Eyebrow Text",
-          "default": "<p></p>"
+          "default": "Available on"
         },
         {
           "type": "text",
           "id": "feature_badge",
           "label": "Badge Text",
-          "default": "<p></p>"
+          "default": "ALL MEMBERSHIPS"
         },
         {
           "type": "text",
           "id": "feature_title",
           "label": "Main Title",
-          "default": "<p></p>"
+          "default": "Quantify how your body is feeling"
         },
         {
           "type": "textarea",
           "id": "feature_description",
           "label": "Description",
-          "default": "<p></p>"
+          "default": "Understand how your body adapts to training, sleep deprivation, illness, or your menstrual cycle—higher recovery means you're ready for more, while lower recovery signals it's time to rest."
         },
         {
           "type": "text",
           "id": "quote_eyebrow",
           "label": "Quote Eyebrow",
-          "default": "<p></p>"
+          "default": "Member Spotlight"
         },
         {
           "type": "textarea",
           "id": "feature_quote",
           "label": "Quote Text",
-          "default": "<p></p>"
+          "default": "One life lesson that WHOOP has helped instill is that rest and recovery days are needed. Waking up and seeing a low recovery score makes me stop and think of what I can do to help my body."
         },
         {
           "type": "text",
           "id": "quote_author",
           "label": "Quote Author",
-          "default": "<p></p>"
+          "default": "Samantha S."
         }
       ]
     }
