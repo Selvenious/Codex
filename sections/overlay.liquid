@@ -1,10 +1,12 @@
 <!-- Shopify Liquid Template for Feature Overlay -->
 <!-- Add this to your theme's templates or sections -->
 
-<div x-data="{ 
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<div x-data="{
   showOverlay: false,
-  imageLoaded: false 
-}" 
+  imageLoaded: false
+}"
 x-cloak
 class="feature-overlay-container">
 
@@ -114,11 +116,11 @@ class="feature-overlay-container">
 
           <!-- Quote Section -->
           {% if settings.feature_quote %}
-            <div class="bg-gray-50 rounded-2xl p-6 space-y-4 border-l-4 border-blue-500">
-              <div class="text-sm font-medium text-blue-600 uppercase tracking-wider">
+            <div class="member-spotlight bg-gray-50 rounded-2xl p-6 space-y-4 border-l-4 border-blue-500">
+              <div class="title text-sm font-medium text-blue-600 uppercase tracking-wider">
                 {{ settings.quote_eyebrow | default: 'Member Spotlight' }}
               </div>
-              <blockquote class="text-base lg:text-lg text-gray-800 italic leading-relaxed">
+              <blockquote class="quote text-base lg:text-lg text-gray-800 italic leading-relaxed">
                 "{{ settings.feature_quote }}"
               </blockquote>
               {% if settings.quote_author %}
@@ -154,11 +156,52 @@ class="feature-overlay-container">
 
 <style>
   [x-cloak] { display: none !important; }
-  
+
+  body {
+    font-family: 'Inter', sans-serif;
+    color: #111;
+    line-height: 1.6;
+    background-color: #fff;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+  }
+
+  p {
+    font-size: 1.125rem;
+    font-weight: 400;
+    color: #333;
+  }
+
+  .member-spotlight {
+    background-color: #f8f9fb;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    margin-top: 2rem;
+  }
+
+  .member-spotlight .title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #666;
+    margin-bottom: 0.5rem;
+  }
+
+  .member-spotlight .quote {
+    font-size: 1rem;
+    font-weight: 400;
+    color: #111;
+    line-height: 1.6;
+  }
+
   .feature-overlay-container {
     /* Custom styles if needed */
   }
-  
+
   /* Responsive adjustments */
   @media (max-width: 768px) {
     .feature-overlay-container .lg\:text-5xl {
