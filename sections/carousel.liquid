@@ -107,7 +107,7 @@ Visual & interaction refinements for WHOOP-style carousel modal:
   background: #d4af37;
   border-color: #d4af37;
   transform: scale(1.25);
-  box-shadow: 0 0 0 2px #082024, 0 2px 8px 0 #d4af3720;
+  box-shadow: 0 0 0 2px #082024, 0 2px 8px 0 rgba(212,175,55,0.125);
 }
 .carousel-arrow {
   background: #082024cc;
@@ -236,6 +236,7 @@ Visual & interaction refinements for WHOOP-style carousel modal:
   to { opacity: 1; transform: translateY(0) scale(1);}
 }
 .animate-slideInUp { animation: slideInUpModal 0.45s cubic-bezier(.23,1.02,.52,.99); }
+
 </style>
 
 
@@ -281,7 +282,7 @@ Visual & interaction refinements for WHOOP-style carousel modal:
             <div 
               class="flex transition-transform transition-border duration-500"
               x-ref="track"
-              :style="`transform: translateX(-${active * (cardWidth + cardGap)}px);`"
+              :style="`transform: translateX(-${active * slideWidth}px);`"
             >
               <template x-for="(feature, i) in features" :key="i">
                 <div
@@ -385,11 +386,18 @@ Visual & interaction refinements for WHOOP-style carousel modal:
               style="box-shadow:0 0 0 2px #fff;"
             >&#10005;</button>
             <!-- Modal Images (Left) -->
-            <div class="w-full md:w-1/2 flex flex-col items-end justify-center" style="background: linear-gradient(135deg, #111827 0%, #1f2937 100%);">
+            <div class="w-full md:w-1/2 flex items-center justify-center relative overflow-hidden" style="background: linear-gradient(135deg, #111827 0%, #1f2937 100%);">
+              <!-- Loading Shimmer -->
+              <div 
+                x-show="!imageLoaded"
+                class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 animate-pulse">
+              </div>
               <img
+                @load="imageLoaded = true"
                 :src="features[modalIdx].modalImg || features[modalIdx].img"
                 :alt="features[modalIdx].title || 'Device preview'"
-                class="max-w-[320px] w-full h-auto mx-auto rounded-lg shadow-xl mb-4"
+                class="max-w-[320px] w-full h-auto mx-auto rounded-lg shadow-xl mb-4 z-20"
+                :class="{ 'opacity-100': imageLoaded, 'opacity-0': !imageLoaded }"
                 loading="lazy"
                 :width="(features[modalIdx].modalImg_width || features[modalIdx].img_width || 320)"
                 :height="(features[modalIdx].modalImg_height || features[modalIdx].img_height || 240)"
@@ -438,115 +446,211 @@ function carouselWithFeatureModal() {
     active: 0,
     modalOpen: false,
     modalIdx: null,
-    cardsPerPage: 3,
+    cardsPerPage: 1,
     totalPages: 1,
     cardWidth: 0,
     cardGap: 0,
-    features: [
-      {% for block in section.blocks %}
-      {
-        img: {{ block.settings.img | json }},
-        modalImg: {{ block.settings.modalImg | json }},
-        secondaryImg: {{ block.settings.secondaryImg | json }},
-        title: {{ block.settings.title | json }},
-        feature_eyebrow: {{ block.settings.feature_eyebrow | json }},
-        feature_badge: {{ block.settings.feature_badge | json }},
-        feature_title: {{ block.settings.feature_title | json }},
-        feature_description: {{ block.settings.feature_description | json }},
-        feature_quote: {{ block.settings.feature_quote | json }},
-        quote_eyebrow: {{ block.settings.quote_eyebrow | json }},
-        quote_author: {{ block.settings.quote_author | json }},
-      }{% unless forloop.last %},{% endunless %}
-      {% endfor %}
-      {% if section.blocks.size == 0 %}
-      {
-        img: "https://cdn.shopify.com/s/files/1/0661/7828/5755/files/Yoga.png?v=1750020580",
-        modalImg: "https://cdn.shopify.com/s/files/1/0661/7828/5755/files/Dashboard.png?v=1750026584",
-        secondaryImg: "https://cdn.shopify.com/s/files/1/0661/7828/5755/files/SecondImage.jpg",
-        title: "Quantify how your body is feeling",
-        feature_eyebrow: "Available on",
-        feature_badge: "ALL MEMBERSHIPS",
-        feature_title: "Quantify how your body is feeling",
-        feature_description: "Understand how your body adapts to training, sleep deprivation, illness, or your menstrual cycle—higher recovery means you're ready for more, while lower recovery signals it's time to rest.",
-        feature_quote: "One life lesson that WHOOP has helped instill is that rest and recovery days are needed. Waking up and seeing a low recovery score makes me stop and think of what I can do to help my body.",
-        quote_eyebrow: "Member Spotlight",
-        quote_author: "Samantha S."
+    slideWidth: 0,
+    track: null,
+    container: null,
+    firstCard: null,
+    resizeFrame: null,
+    boundMove: null,
+    boundEnd: null,
+    boundStart: null,
+    boundResize: null,
+    boundToggleSwipe: null,
+    dragFrame: null,
+    startY: 0,
+    dragging: false,
+    dragStartX: 0,
+    dragStartY: 0,
+    imageLoaded: false,
+      this.track = this.$refs.track;
+      this.container = this.track ? this.track.parentElement : null;
+      this.firstCard = this.track?.querySelector('.carousel-card-hero');
+      this.measureCard();
+      if (!this.boundResize) this.boundResize = this.onResize.bind(this);
+      window.addEventListener('resize', this.boundResize);
+      if (!this.boundToggleSwipe) this.boundToggleSwipe = this.toggleSwipe.bind(this);
+      this.$watch('modalOpen', this.boundToggleSwipe);
+
+      // --- Swipe navigation ---
+      if (!this.boundStart) this.boundStart = this.onDragStart.bind(this);
+      this.track.addEventListener('mousedown', this.boundStart);
+      this.track.addEventListener('touchstart', this.boundStart, { passive: true });
+    },
+    onResize() {
+      cancelAnimationFrame(this.resizeFrame);
+      this.resizeFrame = requestAnimationFrame(() => this.measureCard());
+      const card = this.firstCard;
+      this.slideWidth = this.cardWidth + this.cardGap;
+    toggleSwipe(open) {
+      const modal = this.$refs.modalContainer;
+      if (!modal) return;
+      if (open) {
+    onDragStart(e) {
+      this.dragging = true;
+      this.dragStartX = e.touches ? e.touches[0].clientX : e.clientX;
+      this.dragStartY = e.touches ? e.touches[0].clientY : e.clientY;
+      this.track.style.transition = 'none';
+      this.boundMove = this.onDragMove.bind(this);
+      this.boundEnd = this.onDragEnd.bind(this);
+      window.addEventListener('mousemove', this.boundMove);
+      window.addEventListener('touchmove', this.boundMove, { passive: false });
+      window.addEventListener('mouseup', this.boundEnd);
+      window.addEventListener('touchend', this.boundEnd);
+    },
+    onDragMove(e) {
+      if (!this.dragging) return;
+      if (this.dragFrame) return;
+      this.dragEvent = e;
+      this.dragFrame = requestAnimationFrame(() => {
+        const evt = this.dragEvent;
+        const x = evt.touches ? evt.touches[0].clientX : evt.clientX;
+        const y = evt.touches ? evt.touches[0].clientY : evt.clientY;
+        const dx = x - this.dragStartX;
+        const dy = Math.abs(y - this.dragStartY);
+        if (dy > Math.abs(dx)) {
+          this.dragging = false;
+          this.track.style.transition = '';
+          this.track.style.transform = '';
+          this.cleanupDrag();
+          this.dragFrame = null;
+          return;
+        }
+        if (evt.cancelable) evt.preventDefault();
+        this.track.style.transform = `translateX(${-this.active * (this.cardWidth + this.cardGap) + dx}px)`;
+        this.dragFrame = null;
+      });
+    },
+    onDragEnd(e) {
+      if (!this.dragging) return;
+      const x = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+      const dx = x - this.dragStartX;
+      this.dragging = false;
+      this.track.style.transition = '';
+      this.track.style.transform = '';
+      this.cleanupDrag();
+      if (dx > 50) this.prev();
+      else if (dx < -50) this.next();
+    },
+    cleanupDrag() {
+      window.removeEventListener('mousemove', this.boundMove);
+      window.removeEventListener('touchmove', this.boundMove);
+      window.removeEventListener('mouseup', this.boundEnd);
+      window.removeEventListener('touchend', this.boundEnd);
+    },
+        modal.addEventListener('touchstart', this.onTouchStart.bind(this), { passive: true });
+        modal.addEventListener('touchend', this.onTouchEnd.bind(this), { passive: true });
+      } else {
+        modal.removeEventListener('touchstart', this.onTouchStart.bind(this));
+        modal.removeEventListener('touchend', this.onTouchEnd.bind(this));
       }
-      {% endif %}
-    ],
-    init() {
-      this.$nextTick(() => {
-        this.measureCard();
-        this.updateCardsPerPage();
-        window.addEventListener('resize', () => {
-          this.measureCard();
-          this.updateCardsPerPage();
-          this.adjustActiveOnResize();
+    },
+    onTouchStart(e) {
+      if (e.touches && e.touches.length) this.startY = e.touches[0].clientY;
+    },
+    onTouchEnd(e) {
+      if (e.changedTouches && e.changedTouches.length && e.changedTouches[0].clientY - this.startY > 80) {
+        this.closeModal();
+      }
+    },
+        this.container = this.track ? this.track.parentElement : null;
+        this.track.style.transform = `translateX(${-this.active * this.slideWidth + dx}px)`;
+      this.cardsPerPage = this.slideWidth
+        ? Math.max(1, Math.floor((width + this.cardGap) / this.slideWidth))
+        this.boundTouchEnd = this.onTouchEnd.bind(this);
+      }
+        modal.addEventListener('touchstart', this.boundTouchStart, { passive: true });
+        modal.addEventListener('touchend', this.boundTouchEnd, { passive: true });
+        modal.removeEventListener('touchstart', this.boundTouchStart);
+        modal.removeEventListener('touchend', this.boundTouchEnd);
         });
+
+        // --- Swipe navigation ---
+        const onDragStart = e => {
+          this.dragging = true;
+          this.dragStartX = e.touches ? e.touches[0].clientX : e.clientX;
+          this.dragStartY = e.touches ? e.touches[0].clientY : e.clientY;
+          this.track.style.transition = 'none';
+        };
+        const onDragMove = e => {
+          if (!this.dragging) return;
+          const x = e.touches ? e.touches[0].clientX : e.clientX;
+          const y = e.touches ? e.touches[0].clientY : e.clientY;
+          const dx = x - this.dragStartX;
+          const dy = Math.abs(y - this.dragStartY);
+          if (dy > Math.abs(dx)) {
+            this.dragging = false;
+            this.track.style.transition = '';
+            this.track.style.transform = '';
+            return;
+          }
+          e.preventDefault();
+          this.track.style.transform = `translateX(${-this.active * (this.cardWidth + this.cardGap) + dx}px)`;
+        };
+        const onDragEnd = e => {
+          if (!this.dragging) return;
+          const x = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+          const dx = x - this.dragStartX;
+          this.dragging = false;
+          this.track.style.transition = '';
+          this.track.style.transform = '';
+          if (dx > 50) this.prev();
+          else if (dx < -50) this.next();
+        };
+        this.track.addEventListener('mousedown', onDragStart);
+        this.track.addEventListener('touchstart', onDragStart, { passive: true });
+        window.addEventListener('mousemove', onDragMove);
+        window.addEventListener('touchmove', onDragMove, { passive: false });
+        window.addEventListener('mouseup', onDragEnd);
+        window.addEventListener('touchend', onDragEnd);
         // --- Mobile swipe-to-close ---
-        const self = this;
         let startY = 0;
         let modalContainer = null;
+        const onTouchStart = e => {
+          if (e.touches && e.touches.length) startY = e.touches[0].clientY;
+        };
+        const onTouchEnd = e => {
+          if (e.changedTouches && e.changedTouches.length) {
+            if (e.changedTouches[0].clientY - startY > 80) this.closeModal();
+          }
+        };
         this.$watch('modalOpen', (open) => {
-          if(open) {
-            setTimeout(() => {
+          if (open) {
+            this.$nextTick(() => {
               modalContainer = this.$refs.modalContainer;
-              if(modalContainer) {
-                modalContainer.addEventListener('touchstart', onTouchStart, { passive:true });
-                modalContainer.addEventListener('touchend', onTouchEnd, { passive:true });
-              }
-            }, 10);
+              if (!modalContainer) return;
+              modalContainer.addEventListener('touchstart', onTouchStart, { passive: true });
+              modalContainer.addEventListener('touchend', onTouchEnd, { passive: true });
+            });
+          } else if (modalContainer) {
+            modalContainer.removeEventListener('touchstart', onTouchStart);
+            modalContainer.removeEventListener('touchend', onTouchEnd);
+            modalContainer = null;
           }
         });
-        function onTouchStart(e) {
-          if(e.touches && e.touches.length) startY = e.touches[0].clientY;
-        }
-        function onTouchEnd(e) {
-          if(e.changedTouches && e.changedTouches.length) {
-            const endY = e.changedTouches[0].clientY;
-            if(endY - startY > 80) {
-              self.closeModal();
-            }
-          }
-        }
       });
     },
     measureCard() {
-      this.$nextTick(() => {
-        const track = this.$refs.track;
-        let card = null;
-        if (track && track.children.length) {
-          for (let i = 0; i < track.children.length; i++) {
-            if (track.children[i].classList.contains('carousel-card-hero')) {
-              card = track.children[i];
-              break;
-            }
-          }
-        }
-        if (card) {
-          this.cardWidth = card.offsetWidth;
-          const style = getComputedStyle(card);
-          this.cardGap = parseFloat(style.marginLeft) + parseFloat(style.marginRight);
-        } else {
-          this.cardWidth = 320;
-          this.cardGap = 16;
-        }
-        this.updateCardsPerPage();
-      });
+      const card = this.track?.querySelector('.carousel-card-hero');
+      if (card) {
+        this.cardWidth = card.offsetWidth;
+        const style = getComputedStyle(card);
+        this.cardGap = parseFloat(style.marginLeft) + parseFloat(style.marginRight);
+      } else {
+        this.cardWidth = 320;
+        this.cardGap = 16;
+      }
+      this.updateCardsPerPage();
     },
     updateCardsPerPage() {
-      let container = this.$refs.track?.parentElement || null;
-      let containerWidth = container ? container.offsetWidth : window.innerWidth;
-      if (this.cardWidth > 0) {
-        this.cardsPerPage = Math.max(1, Math.floor((containerWidth + this.cardGap) / (this.cardWidth + this.cardGap)));
-      } else {
-        this.cardsPerPage = 1;
-      }
+      const width = this.container ? this.container.offsetWidth : window.innerWidth;
+      this.cardsPerPage = this.cardWidth
+        ? Math.max(1, Math.floor((width + this.cardGap) / (this.cardWidth + this.cardGap)))
+        : 1;
       this.totalPages = Math.max(1, this.features.length - this.cardsPerPage + 1);
-      if (this.active > this.totalPages - 1) this.active = this.totalPages - 1;
-      if (this.active < 0) this.active = 0;
-    },
-    adjustActiveOnResize() {
       if (this.active > this.totalPages - 1) this.active = this.totalPages - 1;
       if (this.active < 0) this.active = 0;
     },
@@ -556,6 +660,7 @@ function carouselWithFeatureModal() {
     openModal(i) {
       if (i >= 0 && i < this.features.length) {
         this.modalIdx = i;
+        this.imageLoaded = false;
         this.modalOpen = true;
         document.body.classList.add('overflow-hidden');
       }
