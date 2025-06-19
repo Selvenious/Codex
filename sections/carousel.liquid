@@ -452,43 +452,40 @@ function carouselWithFeatureModal() {
     cardGap: 0,
     track: null,
     container: null,
+    firstCard: null,
+    resizeFrame: null,
+    startY: 0,
     imageLoaded: false,
-    dragging: false,
-    dragStartX: 0,
-    dragStartY: 0,
-    features: [
-      {% for block in section.blocks %}
-      {
-        img: {{ block.settings.img | json }},
-        modalImg: {{ block.settings.modalImg | json }},
-        title: {{ block.settings.title | json }},
-        feature_eyebrow: {{ block.settings.feature_eyebrow | json }},
-        feature_badge: {{ block.settings.feature_badge | json }},
-        feature_title: {{ block.settings.feature_title | json }},
-        feature_description: {{ block.settings.feature_description | json }},
-        feature_quote: {{ block.settings.feature_quote | json }},
-        quote_eyebrow: {{ block.settings.quote_eyebrow | json }},
-        quote_author: {{ block.settings.quote_author | json }},
-      }{% unless forloop.last %},{% endunless %}
-      {% endfor %}
-      {% if section.blocks.size == 0 %}
-      {
-        img: "https://cdn.shopify.com/s/files/1/0661/7828/5755/files/Yoga.png?v=1750020580",
-        modalImg: "https://cdn.shopify.com/s/files/1/0661/7828/5755/files/Dashboard.png?v=1750026584",
-        title: "Quantify how your body is feeling",
-        feature_eyebrow: "Available on",
-        feature_badge: "ALL MEMBERSHIPS",
-        feature_title: "Quantify how your body is feeling",
-        feature_description: "Understand how your body adapts to training, sleep deprivation, illness, or your menstrual cycle—higher recovery means you're ready for more, while lower recovery signals it's time to rest.",
-        feature_quote: "One life lesson that WHOOP has helped instill is that rest and recovery days are needed. Waking up and seeing a low recovery score makes me stop and think of what I can do to help my body.",
-        quote_eyebrow: "Member Spotlight",
-        quote_author: "Samantha S."
+      this.track = this.$refs.track;
+      this.container = this.track ? this.track.parentElement : null;
+      this.firstCard = this.track?.querySelector('.carousel-card-hero');
+      this.measureCard();
+      window.addEventListener('resize', this.onResize.bind(this));
+      this.$watch('modalOpen', this.toggleSwipe.bind(this));
+    },
+    onResize() {
+      cancelAnimationFrame(this.resizeFrame);
+      this.resizeFrame = requestAnimationFrame(() => this.measureCard());
+      const card = this.firstCard;
+    toggleSwipe(open) {
+      const modal = this.$refs.modalContainer;
+      if (!modal) return;
+      if (open) {
+        modal.addEventListener('touchstart', this.onTouchStart.bind(this), { passive: true });
+        modal.addEventListener('touchend', this.onTouchEnd.bind(this), { passive: true });
+      } else {
+        modal.removeEventListener('touchstart', this.onTouchStart.bind(this));
+        modal.removeEventListener('touchend', this.onTouchEnd.bind(this));
       }
-      {% endif %}
-    ],
-    init() {
-      this.$nextTick(() => {
-        this.track = this.$refs.track;
+    },
+    onTouchStart(e) {
+      if (e.touches && e.touches.length) this.startY = e.touches[0].clientY;
+    },
+    onTouchEnd(e) {
+      if (e.changedTouches && e.changedTouches.length && e.changedTouches[0].clientY - this.startY > 80) {
+        this.closeModal();
+      }
+    },
         this.container = this.track ? this.track.parentElement : null;
         this.measureCard();
         let resizeFrame;
