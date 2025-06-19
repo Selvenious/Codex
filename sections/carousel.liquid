@@ -282,7 +282,7 @@ Visual & interaction refinements for WHOOP-style carousel modal:
             <div 
               class="flex transition-transform transition-border duration-500"
               x-ref="track"
-              :style="`transform: translateX(-${active * (cardWidth + cardGap)}px);`"
+              :style="`transform: translateX(-${active * slideWidth}px);`"
             >
               <template x-for="(feature, i) in features" :key="i">
                 <div
@@ -450,12 +450,16 @@ function carouselWithFeatureModal() {
     totalPages: 1,
     cardWidth: 0,
     cardGap: 0,
+    slideWidth: 0,
     track: null,
     container: null,
     firstCard: null,
     resizeFrame: null,
     boundMove: null,
     boundEnd: null,
+    boundStart: null,
+    boundResize: null,
+    boundToggleSwipe: null,
     dragFrame: null,
     startY: 0,
     dragging: false,
@@ -466,17 +470,21 @@ function carouselWithFeatureModal() {
       this.container = this.track ? this.track.parentElement : null;
       this.firstCard = this.track?.querySelector('.carousel-card-hero');
       this.measureCard();
-      window.addEventListener('resize', this.onResize.bind(this));
-      this.$watch('modalOpen', this.toggleSwipe.bind(this));
+      if (!this.boundResize) this.boundResize = this.onResize.bind(this);
+      window.addEventListener('resize', this.boundResize);
+      if (!this.boundToggleSwipe) this.boundToggleSwipe = this.toggleSwipe.bind(this);
+      this.$watch('modalOpen', this.boundToggleSwipe);
 
       // --- Swipe navigation ---
-      this.track.addEventListener('mousedown', this.onDragStart.bind(this));
-      this.track.addEventListener('touchstart', this.onDragStart.bind(this), { passive: true });
+      if (!this.boundStart) this.boundStart = this.onDragStart.bind(this);
+      this.track.addEventListener('mousedown', this.boundStart);
+      this.track.addEventListener('touchstart', this.boundStart, { passive: true });
     },
     onResize() {
       cancelAnimationFrame(this.resizeFrame);
       this.resizeFrame = requestAnimationFrame(() => this.measureCard());
       const card = this.firstCard;
+      this.slideWidth = this.cardWidth + this.cardGap;
     toggleSwipe(open) {
       const modal = this.$refs.modalContainer;
       if (!modal) return;
@@ -549,9 +557,9 @@ function carouselWithFeatureModal() {
       }
     },
         this.container = this.track ? this.track.parentElement : null;
-        this.measureCard();
-      if (!this.boundTouchStart) {
-        this.boundTouchStart = this.onTouchStart.bind(this);
+        this.track.style.transform = `translateX(${-this.active * this.slideWidth + dx}px)`;
+      this.cardsPerPage = this.slideWidth
+        ? Math.max(1, Math.floor((width + this.cardGap) / this.slideWidth))
         this.boundTouchEnd = this.onTouchEnd.bind(this);
       }
         modal.addEventListener('touchstart', this.boundTouchStart, { passive: true });
