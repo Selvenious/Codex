@@ -508,7 +508,12 @@ function carouselWithFeatureModal() {
           this.dragStartX = e.touches ? e.touches[0].clientX : e.clientX;
           this.dragStartY = e.touches ? e.touches[0].clientY : e.clientY;
           this.track.style.transition = 'none';
+          window.addEventListener('mousemove', onDragMove);
+          window.addEventListener('touchmove', onDragMove, { passive: false });
+          window.addEventListener('mouseup', onDragEnd);
+          window.addEventListener('touchend', onDragEnd);
         };
+        let moveFrame;
         const onDragMove = e => {
           if (!this.dragging) return;
           const x = e.touches ? e.touches[0].clientX : e.clientX;
@@ -522,7 +527,10 @@ function carouselWithFeatureModal() {
             return;
           }
           e.preventDefault();
-          this.track.style.transform = `translateX(${-this.active * (this.cardWidth + this.cardGap) + dx}px)`;
+          cancelAnimationFrame(moveFrame);
+          moveFrame = requestAnimationFrame(() => {
+            this.track.style.transform = `translateX(${-this.active * (this.cardWidth + this.cardGap) + dx}px)`;
+          });
         };
         const onDragEnd = e => {
           if (!this.dragging) return;
@@ -531,15 +539,15 @@ function carouselWithFeatureModal() {
           this.dragging = false;
           this.track.style.transition = '';
           this.track.style.transform = '';
+          window.removeEventListener('mousemove', onDragMove);
+          window.removeEventListener('touchmove', onDragMove);
+          window.removeEventListener('mouseup', onDragEnd);
+          window.removeEventListener('touchend', onDragEnd);
           if (dx > 50) this.prev();
           else if (dx < -50) this.next();
         };
         this.track.addEventListener('mousedown', onDragStart);
         this.track.addEventListener('touchstart', onDragStart, { passive: true });
-        window.addEventListener('mousemove', onDragMove);
-        window.addEventListener('touchmove', onDragMove, { passive: false });
-        window.addEventListener('mouseup', onDragEnd);
-        window.addEventListener('touchend', onDragEnd);
         // --- Mobile swipe-to-close ---
         let startY = 0;
         let modalContainer = null;
@@ -644,7 +652,6 @@ function carouselWithFeatureModal() {
       "label": "Padding Bottom",
       "default": 52
     },
-    {
     {
       "type": "text",
       "id": "hero_slogan",
