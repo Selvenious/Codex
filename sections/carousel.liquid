@@ -107,7 +107,7 @@ Visual & interaction refinements for WHOOP-style carousel modal:
   background: #d4af37;
   border-color: #d4af37;
   transform: scale(1.25);
-  box-shadow: 0 0 0 2px #082024, 0 2px 8px 0 #d4af3720;
+  box-shadow: 0 0 0 2px #082024, 0 2px 8px 0 rgba(212,175,55,0.125);
 }
 .carousel-arrow {
   background: #082024cc;
@@ -458,7 +458,6 @@ function carouselWithFeatureModal() {
       {
         img: {{ block.settings.img | json }},
         modalImg: {{ block.settings.modalImg | json }},
-        secondaryImg: {{ block.settings.secondaryImg | json }},
         title: {{ block.settings.title | json }},
         feature_eyebrow: {{ block.settings.feature_eyebrow | json }},
         feature_badge: {{ block.settings.feature_badge | json }},
@@ -473,7 +472,6 @@ function carouselWithFeatureModal() {
       {
         img: "https://cdn.shopify.com/s/files/1/0661/7828/5755/files/Yoga.png?v=1750020580",
         modalImg: "https://cdn.shopify.com/s/files/1/0661/7828/5755/files/Dashboard.png?v=1750026584",
-        secondaryImg: "https://cdn.shopify.com/s/files/1/0661/7828/5755/files/SecondImage.jpg",
         title: "Quantify how your body is feeling",
         feature_eyebrow: "Available on",
         feature_badge: "ALL MEMBERSHIPS",
@@ -490,12 +488,10 @@ function carouselWithFeatureModal() {
         this.track = this.$refs.track;
         this.container = this.track ? this.track.parentElement : null;
         this.measureCard();
-        let resizeTimeout;
+        let resizeFrame;
         window.addEventListener('resize', () => {
-          clearTimeout(resizeTimeout);
-          resizeTimeout = setTimeout(() => {
-            this.measureCard();
-          }, 150);
+          cancelAnimationFrame(resizeFrame);
+          resizeFrame = requestAnimationFrame(() => this.measureCard());
         });
         // --- Mobile swipe-to-close ---
         let startY = 0;
