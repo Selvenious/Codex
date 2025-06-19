@@ -454,6 +454,9 @@ function carouselWithFeatureModal() {
     container: null,
     firstCard: null,
     resizeFrame: null,
+    boundMove: null,
+    boundEnd: null,
+    dragFrame: null,
     startY: 0,
     dragging: false,
     dragStartX: 0,
@@ -467,43 +470,8 @@ function carouselWithFeatureModal() {
       this.$watch('modalOpen', this.toggleSwipe.bind(this));
 
       // --- Swipe navigation ---
-      const onDragStart = e => {
-        this.dragging = true;
-        this.dragStartX = e.touches ? e.touches[0].clientX : e.clientX;
-        this.dragStartY = e.touches ? e.touches[0].clientY : e.clientY;
-        this.track.style.transition = 'none';
-      };
-      const onDragMove = e => {
-        if (!this.dragging) return;
-        const x = e.touches ? e.touches[0].clientX : e.clientX;
-        const y = e.touches ? e.touches[0].clientY : e.clientY;
-        const dx = x - this.dragStartX;
-        const dy = Math.abs(y - this.dragStartY);
-        if (dy > Math.abs(dx)) {
-          this.dragging = false;
-          this.track.style.transition = '';
-          this.track.style.transform = '';
-          return;
-        }
-        e.preventDefault();
-        this.track.style.transform = `translateX(${-this.active * (this.cardWidth + this.cardGap) + dx}px)`;
-      };
-      const onDragEnd = e => {
-        if (!this.dragging) return;
-        const x = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
-        const dx = x - this.dragStartX;
-        this.dragging = false;
-        this.track.style.transition = '';
-        this.track.style.transform = '';
-        if (dx > 50) this.prev();
-        else if (dx < -50) this.next();
-      };
-      this.track.addEventListener('mousedown', onDragStart);
-      this.track.addEventListener('touchstart', onDragStart, { passive: true });
-      window.addEventListener('mousemove', onDragMove);
-      window.addEventListener('touchmove', onDragMove, { passive: false });
-      window.addEventListener('mouseup', onDragEnd);
-      window.addEventListener('touchend', onDragEnd);
+      this.track.addEventListener('mousedown', this.onDragStart.bind(this));
+      this.track.addEventListener('touchstart', this.onDragStart.bind(this), { passive: true });
     },
     onResize() {
       cancelAnimationFrame(this.resizeFrame);
@@ -513,6 +481,58 @@ function carouselWithFeatureModal() {
       const modal = this.$refs.modalContainer;
       if (!modal) return;
       if (open) {
+    onDragStart(e) {
+      this.dragging = true;
+      this.dragStartX = e.touches ? e.touches[0].clientX : e.clientX;
+      this.dragStartY = e.touches ? e.touches[0].clientY : e.clientY;
+      this.track.style.transition = 'none';
+      this.boundMove = this.onDragMove.bind(this);
+      this.boundEnd = this.onDragEnd.bind(this);
+      window.addEventListener('mousemove', this.boundMove);
+      window.addEventListener('touchmove', this.boundMove, { passive: false });
+      window.addEventListener('mouseup', this.boundEnd);
+      window.addEventListener('touchend', this.boundEnd);
+    },
+    onDragMove(e) {
+      if (!this.dragging) return;
+      if (this.dragFrame) return;
+      this.dragEvent = e;
+      this.dragFrame = requestAnimationFrame(() => {
+        const evt = this.dragEvent;
+        const x = evt.touches ? evt.touches[0].clientX : evt.clientX;
+        const y = evt.touches ? evt.touches[0].clientY : evt.clientY;
+        const dx = x - this.dragStartX;
+        const dy = Math.abs(y - this.dragStartY);
+        if (dy > Math.abs(dx)) {
+          this.dragging = false;
+          this.track.style.transition = '';
+          this.track.style.transform = '';
+          this.cleanupDrag();
+          this.dragFrame = null;
+          return;
+        }
+        if (evt.cancelable) evt.preventDefault();
+        this.track.style.transform = `translateX(${-this.active * (this.cardWidth + this.cardGap) + dx}px)`;
+        this.dragFrame = null;
+      });
+    },
+    onDragEnd(e) {
+      if (!this.dragging) return;
+      const x = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+      const dx = x - this.dragStartX;
+      this.dragging = false;
+      this.track.style.transition = '';
+      this.track.style.transform = '';
+      this.cleanupDrag();
+      if (dx > 50) this.prev();
+      else if (dx < -50) this.next();
+    },
+    cleanupDrag() {
+      window.removeEventListener('mousemove', this.boundMove);
+      window.removeEventListener('touchmove', this.boundMove);
+      window.removeEventListener('mouseup', this.boundEnd);
+      window.removeEventListener('touchend', this.boundEnd);
+    },
         modal.addEventListener('touchstart', this.onTouchStart.bind(this), { passive: true });
         modal.addEventListener('touchend', this.onTouchEnd.bind(this), { passive: true });
       } else {
