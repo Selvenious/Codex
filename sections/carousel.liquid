@@ -194,10 +194,39 @@ Visual & interaction refinements for WHOOP-style carousel modal:
   .modal-right-content {
     background-color: #f8f9fb;
     padding: 1.25rem !important;
+    padding-top: 56px !important;
   }
   .modal-container {
     padding: 0 !important;
     border-radius: 1rem !important;
+    max-height: 100vh !important;
+    height: 100vh !important;
+    overflow-y: auto !important;
+    flex-direction: column !important;
+  }
+  .modal-modal-img-mobile {
+    max-width: 92vw !important;
+    max-height: 38vh !important;
+    width: 100% !important;
+    height: auto !important;
+    object-fit: contain !important;
+    margin: 0 auto 0 auto !important;
+    display: block !important;
+  }
+  .modal-mobile-close {
+    position: fixed !important;
+    top: 18px;
+    right: 18px;
+    z-index: 60;
+    background: rgba(255,255,255,0.94);
+    border-radius: 9999px;
+    padding: 0.25rem 0.5rem;
+    min-width: 40px;
+    min-height: 40px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
   }
 }
 
@@ -384,7 +413,7 @@ Visual & interaction refinements for WHOOP-style carousel modal:
             <button
               @click="closeModal"
               aria-label="Close modal"
-              class="absolute right-5 top-5 z-10 rounded-full border border-[#d4af37] w-9 h-9 flex items-center justify-center bg-white hover:bg-gray-100 text-2xl"
+              class="modal-mobile-close absolute right-5 top-5 z-10 rounded-full border border-[#d4af37] w-9 h-9 flex items-center justify-center bg-white hover:bg-gray-100 text-2xl"
               type="button"
               tabindex="0"
               style="box-shadow:0 0 0 2px #fff;"
@@ -400,7 +429,7 @@ Visual & interaction refinements for WHOOP-style carousel modal:
                 @load="imageLoaded = true"
                 :src="features[modalIdx].modalImg || features[modalIdx].img"
                 :alt="features[modalIdx].title || 'Device preview'"
-                class="max-w-[320px] w-full h-auto mx-auto rounded-lg shadow-xl mb-4 z-20"
+                class="modal-modal-img-mobile max-w-[320px] w-full h-auto mx-auto rounded-lg shadow-xl mb-4 z-20"
                 :class="{ 'opacity-100': imageLoaded, 'opacity-0': !imageLoaded }"
                 loading="lazy"
                 :width="(features[modalIdx].modalImg_width || features[modalIdx].img_width || 320)"
@@ -609,7 +638,7 @@ function carouselWithFeatureModal() {
 
 {% schema %}
 {
-  "name": "Carousel Feature Overlay",
+  "name": "Carousel",
   "tag": "section",
   "class": "section",
   "settings": [
@@ -863,7 +892,7 @@ function carouselWithFeatureModal() {
   ],
   "presets": [
     {
-      "name": "Carousel Feature Overlay",
+      "name": "Carousel Feature Overlay Fixed",
       "category": "Custom"
     }
   ]
