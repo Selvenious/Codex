@@ -118,6 +118,38 @@
     stroke: #d4af37;
     color: #d4af37;
   }
+
+  /* Mobile menu and dropdown styles */
+  .menu-drawer,
+  .menu-drawer__submenu,
+  .header__submenu {
+    background: linear-gradient(0deg, #082024 0%, #10343B 100%);
+    border-color: #d4af37;
+    border-width: 2px;
+  }
+
+  .menu-drawer__menu-item,
+  .menu-drawer__account,
+  .menu-drawer__utility-links,
+  .menu-drawer .list-social__link,
+  .header__submenu .header__menu-item {
+    color: #fff;
+  }
+
+  .menu-drawer__menu-item:hover,
+  .menu-drawer__close-button:hover,
+  .menu-drawer__account:hover,
+  .menu-drawer .list-social__link:hover,
+  .header__submenu .header__menu-item:hover {
+    color: #d4af37;
+  }
+
+  .menu-drawer__close-button .svg-wrapper,
+  .menu-drawer__menu-item .svg-wrapper,
+  .menu-drawer__account .svg-wrapper {
+    stroke: #d4af37;
+    color: #d4af37;
+  }
 </style>
 
 <script src="{{ 'cart-notification.js' | asset_url }}" defer="defer"></script>
