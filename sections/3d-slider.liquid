@@ -1,0 +1,286 @@
+{% comment %}
+WHOOP-style 3D merry-go-round carousel with Alpine.js, Tailwind, Liquid, Shopify-ready.
+Only the carousel is rendered. Modal, headlines, and extras are removed.
+{% endcomment %}
+
+<link href="https://fonts.googleapis.com/css?family=Inter:400,500,700&display=swap" rel="stylesheet">
+
+<style>
+[x-cloak] { display: none !important; }
+.carousel-bg-hero {
+  background: linear-gradient(0deg, #082024 0%, #10343B 100%);
+}
+.carousel-3d-stage {
+  perspective: 1200px;
+  width: 350px;
+  height: 360px;
+  position: relative;
+  margin: 0 auto;
+}
+.carousel-3d-slide {
+  width: 260px;
+  height: 340px;
+  top: 50%; left: 50%;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+  transition: transform 0.55s cubic-bezier(.5,.2,.2,1), opacity 0.4s;
+  margin: -170px 0 0 -130px;
+  z-index: 1;
+}
+.carousel-3d-slide[aria-hidden="false"] {
+  z-index: 2;
+}
+.carousel-card-hero {
+  background: #fff;
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 24px 0 rgba(8,32,36,0.16);
+  border: 2px solid #d4af37;
+  transition: box-shadow 0.3s, border 0.3s, transform 0.25s;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 340px;
+  width: 100%;
+  height: 100%;
+}
+.carousel-card-hero:hover {
+  border-color: #f4d03f;
+  box-shadow: 0 12px 40px 0 rgba(212,175,55,0.17), 0 6px 32px 0 rgba(16,52,59,0.18);
+  transform: scale(1.04);
+  z-index: 3;
+}
+.carousel-card-img-wrap {
+  position: relative;
+  width: 100%;
+  height: 170px;
+  border-radius: 1.25rem 1.25rem 0 0;
+  overflow: hidden;
+  z-index: 0;
+}
+.carousel-card-img {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+  border-radius: 1.25rem 1.25rem 0 0;
+  display: block;
+}
+.carousel-card-title-overlay {
+  padding: 1.1rem 1.1rem 1.1rem 1.25rem;
+  color: #082024;
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  text-align: left;
+}
+.carousel-arrow {
+  background: #082024cc;
+  border-radius: 9999px;
+  border: 2px solid #d4af37;
+  color: #d4af37;
+  transition: background 0.2s, color 0.2s;
+}
+.carousel-arrow:disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+.carousel-arrow:hover {
+  background: #d4af37;
+  color: #082024;
+}
+.carousel-dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 9999px;
+  background: #10343B;
+  border: 2px solid #d4af37;
+  transition: background 0.2s, border 0.2s, transform 0.2s;
+}
+.carousel-dot-active {
+  background: #d4af37;
+  border-color: #d4af37;
+  transform: scale(1.25);
+  box-shadow: 0 0 0 2px #082024, 0 2px 8px 0 rgba(212,175,55,0.125);
+}
+</style>
+
+<div class="carousel-bg-hero py-12">
+  <div 
+    x-data="carousel3d()"
+    x-init="init()"
+    class="relative flex flex-col items-center"
+    tabindex="0"
+    @keydown.left.window="prev()"
+    @keydown.right.window="next()"
+  >
+    <div class="carousel-3d-stage">
+      <template x-for="(feature, i) in features" :key="i">
+        <div
+          class="carousel-3d-slide absolute"
+          :style="slideStyle(i)"
+          :aria-hidden="String(active !== i)"
+        >
+          <div class="carousel-card-hero group">
+            <div class="carousel-card-img-wrap">
+              <img
+                :src="feature.img"
+                :alt="feature.title || 'Feature image'"
+                class="carousel-card-img"
+                loading="lazy"
+              />
+            </div>
+            <div class="carousel-card-title-overlay" x-text="feature.title"></div>
+          </div>
+        </div>
+      </template>
+    </div>
+    <div class="flex justify-center items-center mt-8 gap-6">
+      <button
+        @click="prev()"
+        class="carousel-arrow p-2"
+        aria-label="Previous"
+        type="button"
+      >
+        <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 19l-7-7 7-7"/></svg>
+      </button>
+      <div class="flex gap-2">
+        <template x-for="i in features.length" :key="i">
+          <button
+            :class="active === (i-1) ? 'carousel-dot carousel-dot-active' : 'carousel-dot opacity-70 hover:scale-105'"
+            class="w-3 h-3 rounded-full transition-all duration-200"
+            @click="goTo(i-1)"
+            :aria-label="'Go to slide ' + i"
+            :aria-current="active === (i-1)"
+            type="button"
+          ></button>
+        </template>
+      </div>
+      <button
+        @click="next()"
+        class="carousel-arrow p-2"
+        aria-label="Next"
+        type="button"
+      >
+        <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+function carousel3d() {
+  return {
+    active: 0,
+    features: [
+      {% for block in section.blocks %}
+      {
+        img: {{ block.settings.img | json }},
+        title: {{ block.settings.title | json }}
+      }{% unless forloop.last %},{% endunless %}
+      {% endfor %}
+      {% if section.blocks.size == 0 %}
+      {
+        img: "https://cdn.shopify.com/s/files/1/0661/7828/5755/files/Yoga.png?v=1750020580",
+        title: "Quantify how your body is feeling"
+      }
+      {% endif %}
+    ],
+    radius: 390, // px, controls distance from center
+    slideAngle() { return 360 / this.features.length; },
+    slideStyle(i) {
+      // Compute the shortest rotation (supports wrap-around)
+      let diff = i - this.active;
+      // For wrap-around (e.g. 0-4 on 5 slides is -1, not -4)
+      if (diff > this.features.length / 2) diff -= this.features.length;
+      if (diff < -this.features.length / 2) diff += this.features.length;
+      const angle = this.slideAngle() * diff;
+      return `
+        transform:
+          rotateY(${angle}deg)
+          translateZ(${this.radius}px)
+          ${this.active === i ? 'scale(1.08)' : 'scale(0.89)'}
+        ;
+        opacity: ${Math.abs(diff) <= 2 ? 1 : 0};
+        z-index: ${this.active === i ? 2 : 1};
+        pointer-events: ${this.active === i ? 'auto' : 'none'};
+      `;
+    },
+    next() {
+      this.active = (this.active + 1) % this.features.length;
+    },
+    prev() {
+      this.active = (this.active - 1 + this.features.length) % this.features.length;
+    },
+    goTo(i) {
+      if (i >= 0 && i < this.features.length) this.active = i;
+    },
+    init() {
+      this.$el.focus();
+    }
+  }
+}
+</script>
+
+{% schema %}
+{
+  "name": "3D Carousel",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "liquid",
+      "id": "custom_liquid",
+      "label": "Custom Liquid",
+      "info": "Add custom Liquid code above the carousel"
+    },
+    {
+      "type": "header",
+      "content": "Section Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding Top",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding Bottom",
+      "default": 52
+    }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Slide",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "img",
+          "label": "Card Image"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Card Title"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "3D Carousel",
+      "category": "Custom"
+    }
+  ]
+}
+{% endschema %}
