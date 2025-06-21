@@ -4,6 +4,7 @@ Only the carousel is rendered. Modal, headlines, and extras are removed.
 {% endcomment %}
 
 <link href="https://fonts.googleapis.com/css?family=Inter:400,500,700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 <style>
 [x-cloak] { display: none !important; }
@@ -102,6 +103,13 @@ Only the carousel is rendered. Modal, headlines, and extras are removed.
   transform: scale(1.25);
   box-shadow: 0 0 0 2px #082024, 0 2px 8px 0 rgba(212,175,55,0.125);
 }
+@media (prefers-reduced-motion: reduce) {
+  .carousel-3d-slide,
+  .carousel-card-hero:hover {
+    transition: none;
+    transform: none;
+  }
+}
 </style>
 
 <div class="carousel-bg-hero py-12">
@@ -186,7 +194,8 @@ function carousel3d() {
       {% endif %}
     ],
     radius: 390, // px, controls distance from center
-    slideAngle() { return 360 / this.features.length; },
+    angle: 0,
+    slideAngle() { return this.angle; },
     slideStyle(i) {
       // Compute the shortest rotation (supports wrap-around)
       let diff = i - this.active;
@@ -215,6 +224,7 @@ function carousel3d() {
       if (i >= 0 && i < this.features.length) this.active = i;
     },
     init() {
+      this.angle = 360 / this.features.length;
       this.$el.focus();
     }
   }
