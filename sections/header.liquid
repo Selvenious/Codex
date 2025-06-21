@@ -100,6 +100,26 @@
   }
 {%- endstyle -%}
 
+<style>
+  .header-wrapper {
+    background: linear-gradient(0deg, #082024 0%, #10343B 100%);
+    border-bottom: 2px solid #d4af37;
+  }
+
+  .header__heading-link,
+  .header .list-menu__item--link,
+  .header__icon {
+    color: #d4af37;
+  }
+
+  .header__icon svg,
+  .header__icon .icon,
+  .header__icon .svg-wrapper {
+    stroke: #d4af37;
+    color: #d4af37;
+  }
+</style>
+
 <script src="{{ 'cart-notification.js' | asset_url }}" defer="defer"></script>
 
 {%- liquid
